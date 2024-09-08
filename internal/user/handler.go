@@ -17,15 +17,13 @@ func SayHello(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(writer, msg)
 }
 
-// 登录请求结构体
-type SignUpRequest struct{
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
+func SignUp(writer http.ResponseWriter, request *http.Request){
+	var signInRequest SignUpRequest
+	if err := json.NewDecoder(request.Body).Decode(&signInRequest); err != nil {
+		http.Error(writer, "请求无效", http.StatusBadRequest)
+	}
 
-// 登录响应结构体
-type SignUpRespose struct{
-	Token string `json:"token"`
+	signUp(signInRequest)
 }
 
 func SignIn(writer http.ResponseWriter, request *http.Request){
@@ -38,12 +36,6 @@ func SignIn(writer http.ResponseWriter, request *http.Request){
 	testUsername := signInRequest.Username
 	// 明文：123456
 	testPassword := "$2a$10$bWpBrhUJKGmcPNc1UB3Fxus0ZNOQtCBmgwWcXMYDyeyC.1H/Ef29G"
-
-	// 密码哈希化，这个应该放在注册里做
-	/*hashedPassword, err := bcrypt.GenerateFromPassword([]byte(testPassword), bcrypt.DefaultCost)
-	if err != nil{
-		http.Error(writer, "密码明文哈希化失败", http.StatusInternalServerError)
-	}*/
 
 	// 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(testPassword), []byte(signInRequest.Password)); err != nil{
