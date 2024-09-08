@@ -19,14 +19,14 @@ type IDGenerator struct {
 	sequence  int64 // 当前毫秒的序列号
 }
 
-// NewIDGenerator 创建一个新的 ID 生成器
-func NewIDGenerator() *IDGenerator {
+// 创建一个新的 ID 生成器
+func newIDGenerator() *IDGenerator {
 	return &IDGenerator{}
 }
 
 // GenerateID 生成一个唯一的 uint64 ID
 // 暂只考虑时间戳和序列号部分
-func (g *IDGenerator) GenerateID() uint64 {
+func (g *IDGenerator) generateID() uint64 {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
