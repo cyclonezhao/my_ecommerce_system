@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
+
+	"my_ecommerce_system/internal/user"
 )
 
 func main() {
@@ -10,9 +14,13 @@ func main() {
 }
 
 func startHTTPServer() {
+	r := mux.NewRouter()
+
+	r.HandleFunc("/user/sayHello", user.SayHello)
+	r.HandleFunc("/hello", hello)
+
 	addr := ":8080"
-	http.HandleFunc("/hello", hello)
-	http.ListenAndServe(addr, nil)
+	http.ListenAndServe(addr, r)
 }
 
 func hello(writer http.ResponseWriter, request *http.Request) {
