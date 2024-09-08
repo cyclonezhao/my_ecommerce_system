@@ -17,6 +17,8 @@ func startHTTPServer() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/user/sayHello", user.SayHello)
+	r.HandleFunc("/user/signIn", user.SignIn)
+	r.HandleFunc("/user/login", user.SignIn)
 	r.HandleFunc("/hello", hello)
 
 	addr := ":8080"
