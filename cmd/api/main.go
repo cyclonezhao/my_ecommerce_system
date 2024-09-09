@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"my_ecommerce_system/pkg/client"
 	"my_ecommerce_system/pkg/config"
 	"my_ecommerce_system/pkg/db"
 	"my_ecommerce_system/pkg/errorhandler"
@@ -23,6 +24,8 @@ func startHTTPServer() {
 	config.InitConfig()
 	// 初始化数据库
 	db.InitDB()
+	// 初始化Redis连接
+	client.InitRedis()
 
 	// 配置路由表
 	r := mux.NewRouter()
@@ -35,7 +38,10 @@ func startHTTPServer() {
 	// 启动http服务
 	log.Printf("%s 开始启动！", config.AppConfig.AppName)
 	addr := config.AppConfig.Addr
-	http.ListenAndServe(addr, middleware.ErrorToHttpHandlingMiddleware(r))
+
+	handler := middleware.AuthenticationMiddleware(
+		middleware.ErrorToHttpHandlingMiddleware(r))
+	http.ListenAndServe(addr, handler)
 }
 
 func hello(writer http.ResponseWriter, request *http.Request) {

@@ -18,7 +18,15 @@ type Config struct {
 	Redis struct {
 		Host string `yaml:"host"`
 		Port int    `yaml:"port"`
+		DB int `yaml:"db"`
+		Password string `yaml: "password"`
 	} `yaml:"redis"`
+	Gateway struct {
+		WriteList []string `yaml:"writeList"`
+	} `yaml:"gateway"`
+	Jwt struct {
+		Expire int `yaml:"expire"`
+	} `yaml:"jwt"`
 }
 
 // 全局变量

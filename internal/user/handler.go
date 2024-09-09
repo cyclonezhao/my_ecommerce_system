@@ -1,13 +1,19 @@
 package user
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"my_ecommerce_system/pkg/client"
+	"my_ecommerce_system/pkg/config"
+	"my_ecommerce_system/pkg/constant"
 	"my_ecommerce_system/pkg/errorhandler"
+	"my_ecommerce_system/pkg/middleware"
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -74,18 +80,29 @@ func SignIn(writer http.ResponseWriter, request *http.Request) error {
 
 func genToken(userName string) (string, error){
 	// 创建 JWT Token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": userName,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-	})
+	expirationTime := time.Duration(config.AppConfig.Jwt.Expire) * time.Second
+	claims := &middleware.Claims{
+		UserName: userName,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expirationTime)),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	// 使用密钥签名token
-	tokenString, err := token.SignedString([]byte("I_am_a_secretKey"))
+	tokenString, err := token.SignedString([]byte(constant.JWT_SECRET_KEY))
 	if err != nil{
-		return "", &errorhandler.BusinessError{Message:"创建Token失败", HttpCode:http.StatusUnauthorized}
+		return "", &errorhandler.BusinessError{Message:"创建Token失败"}
 	}
 
-	// TODO 将token存到Redis
+	// 将token存到Redis
+	ctx := context.Background()
+	cacheKey := constant.CACHE_USER_TOKEN + ":" + userName
+	err = client.RedisClient.Set(ctx, cacheKey, tokenString, expirationTime).Err()
+	if err != nil {
+		log.Print(err)
+		return "", &errorhandler.BusinessError{Message:"缓存Token失败"}
+	}
 
 	return tokenString, nil
 }
