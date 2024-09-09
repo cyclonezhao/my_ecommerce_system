@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"my_ecommerce_system/pkg/db"
 	"my_ecommerce_system/pkg/errorhandler"
+	"my_ecommerce_system/pkg/middleware"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,7 +30,7 @@ func startHTTPServer() {
 
 	// 启动http服务
 	addr := ":8080"
-	http.ListenAndServe(addr, r)
+	http.ListenAndServe(addr, middleware.ErrorToHttpHandlingMiddleware(r))
 }
 
 func hello(writer http.ResponseWriter, request *http.Request) {

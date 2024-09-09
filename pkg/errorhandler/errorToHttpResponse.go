@@ -1,6 +1,7 @@
 package errorhandler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -12,13 +13,21 @@ type ErrorToHttpResponse func(http.ResponseWriter, *http.Request) error
 // 实现 http.Handler 接口
 func (fn ErrorToHttpResponse) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
-		log.Printf("ErrorToHttpResponse 统一处理错误: %v", err)
-
-		// 针对 BusinessError 处理一下 httpStatus
-		httpStatus := http.StatusInternalServerError
-		if businessError, ok := err.(*BusinessError); ok && businessError.HttpCode != 0 {
-			httpStatus = businessError.HttpCode
-		}
-		http.Error(w, err.Error(), httpStatus)
+		HandleErrorToHttpResponse(w, err)
 	}
+}
+
+func HandleErrorToHttpResponse(w http.ResponseWriter, obj interface{}){
+	log.Printf("ErrorToHttpResponse 统一处理错误: %v", obj)
+
+	// 针对 BusinessError 处理一下 httpStatus
+	httpStatus := http.StatusInternalServerError
+	responseMsg := fmt.Sprintf("Internal Server Error: %v", obj)
+	if businessError, ok := obj.(*BusinessError); ok && businessError.HttpCode != 0 {
+		httpStatus = businessError.HttpCode
+		responseMsg = businessError.Error()
+	}else if err, ok := obj.(error); ok{
+		responseMsg = err.Error()
+	}
+	http.Error(w, responseMsg, httpStatus)
 }
