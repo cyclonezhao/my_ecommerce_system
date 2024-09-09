@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"my_ecommerce_system/pkg/errorhandler"
 	//"net/http"
 )
 
@@ -16,7 +17,9 @@ func signUp(request SignUpRequest) error{
 	if err != nil{
 		return err
 	}else if exists{
-		return fmt.Errorf("用户名[%s]已存在！", userName)
+		return &errorhandler.BusinessError{
+			Message:fmt.Sprintf("用户名[%s]已存在！", userName),
+		}
 	}
 
 	// 密码哈希化

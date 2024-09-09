@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"my_ecommerce_system/pkg/db"
+	"my_ecommerce_system/pkg/errorhandler"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -21,9 +22,9 @@ func startHTTPServer() {
 	// 配置路由表
 	r := mux.NewRouter()
 	r.HandleFunc("/user/sayHello", user.SayHello)
-	r.HandleFunc("/user/signUp", user.SignUp)
-	r.HandleFunc("/user/signIn", user.SignIn)
-	r.HandleFunc("/user/login", user.SignIn)
+	r.Handle("/user/signUp", errorhandler.ErrorToHttpResponse(user.SignUp))
+	r.Handle("/user/signIn", errorhandler.ErrorToHttpResponse(user.SignIn))
+	r.Handle("/user/login", errorhandler.ErrorToHttpResponse(user.SignIn))
 	r.HandleFunc("/hello", hello)
 
 	// 启动http服务

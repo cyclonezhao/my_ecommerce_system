@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"my_ecommerce_system/pkg/errorhandler"
 	"net/http"
 	"time"
 
@@ -17,30 +18,39 @@ func SayHello(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprintf(writer, msg)
 }
 
-func SignUp(writer http.ResponseWriter, request *http.Request){
+func SignUp(writer http.ResponseWriter, request *http.Request) error{
 	var signInRequest SignUpRequest
 	if err := json.NewDecoder(request.Body).Decode(&signInRequest); err != nil {
-		http.Error(writer, "请求无效", http.StatusBadRequest)
+		return &errorhandler.BusinessError{Message:"请求无效", HttpCode:http.StatusBadRequest}
 	}
 
-	signUp(signInRequest)
+	err := signUp(signInRequest)
+
+	if err != nil{
+		// 创建Token
+		tokenString, err := genToken(signInRequest.Username)
+		if err != nil{
+			return err
+		}
+
+		// 把token返回给前端
+		json.NewEncoder(writer).Encode(SignUpRespose{Token: tokenString})
+	}
+	return err
 }
 
-func SignIn(writer http.ResponseWriter, request *http.Request){
+func SignIn(writer http.ResponseWriter, request *http.Request) error {
 	var signInRequest SignUpRequest
 	if err := json.NewDecoder(request.Body).Decode(&signInRequest); err != nil {
-		http.Error(writer, "请求无效", http.StatusBadRequest)
-		return
+		return &errorhandler.BusinessError{Message:"请求无效", HttpCode:http.StatusBadRequest}
 	}
 
 	// 根据传来的userName从DB中查用户
 	user, err := getUserByName(signInRequest.Username)
 	if user == nil{
-		http.Error(writer, "用户不存在", http.StatusUnauthorized)
-		return
+		return &errorhandler.BusinessError{Message:"用户不存在", HttpCode:http.StatusUnauthorized}
 	}else if err != nil{
-		http.Error(writer, err.Error(), http.StatusUnauthorized)
-		return
+		return &errorhandler.BusinessError{Message:err.Error(), HttpCode:http.StatusUnauthorized}
 	}
 
 	userName := user.Name
@@ -48,10 +58,21 @@ func SignIn(writer http.ResponseWriter, request *http.Request){
 
 	// 验证密码
 	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(signInRequest.Password)); err != nil{
-		http.Error(writer, "用户名或密码错误", http.StatusUnauthorized)
-		return
+		return &errorhandler.BusinessError{Message:"用户名或密码错误", HttpCode:http.StatusUnauthorized}
 	}
 
+	// 创建Token
+	tokenString, err := genToken(userName)
+	if err != nil{
+		return err
+	}
+
+	// 把token返回给前端
+	json.NewEncoder(writer).Encode(SignUpRespose{Token: tokenString})
+	return nil
+}
+
+func genToken(userName string) (string, error){
 	// 创建 JWT Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userName,
@@ -61,13 +82,10 @@ func SignIn(writer http.ResponseWriter, request *http.Request){
 	// 使用密钥签名token
 	tokenString, err := token.SignedString([]byte("I_am_a_secretKey"))
 	if err != nil{
-		http.Error(writer, "创建Token失败", http.StatusInternalServerError)
-		return
+		return "", &errorhandler.BusinessError{Message:"创建Token失败", HttpCode:http.StatusUnauthorized}
 	}
 
 	// TODO 将token存到Redis
 
-
-	// 把token返回给前端
-	json.NewEncoder(writer).Encode(SignUpRespose{Token: tokenString})
+	return tokenString, nil
 }

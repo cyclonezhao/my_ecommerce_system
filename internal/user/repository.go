@@ -3,17 +3,15 @@ package user
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	"my_ecommerce_system/pkg/constant"
 	"my_ecommerce_system/pkg/db"
 
 	"time"
 )
 
-func addNewUser(newUser *User){
+func addNewUser(newUser *User) error{
 	sql := `INSERT INTO sys_user (id, name, password, created_at) VALUES (?, ?, ?, ?)`
-	db.Execute(sql, db.GenId(), newUser.Name, newUser.Password, time.Now())
+	return db.Execute(sql, db.GenId(), newUser.Name, newUser.Password, time.Now())
 }
 
 func getUserByName(name string) (*User,error) {
@@ -26,7 +24,7 @@ func getUserByName(name string) (*User,error) {
 	// 这是这样一来就破坏了代码统一性
 	var createdAt sql.NullString
 
-	db.ExecuteQuery(sqlStr, func(rows *sql.Rows) error {
+	err := db.ExecuteQuery(sqlStr, func(rows *sql.Rows) error {
 		for rows.Next(){
 			var user User
 			err := rows.Scan(&user.Id, &user.Name, &user.Password, &createdAt)
@@ -38,7 +36,7 @@ func getUserByName(name string) (*User,error) {
 				// 很奇怪的时间日期格式化模板：constant.DATE_TIME_FORMAT
 				user.Created_at, err = time.Parse(constant.DATE_TIME_FORMAT, createdAt.String)
 				if err != nil{
-					log.Fatal(err)
+					return err
 				}
 			}
 
@@ -46,6 +44,10 @@ func getUserByName(name string) (*User,error) {
 		}
 		return nil
 	}, name)
+
+	if err != nil{
+		return nil, err
+	}
 
 	if len(users) == 0{
 		return nil, nil
