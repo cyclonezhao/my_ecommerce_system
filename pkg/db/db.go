@@ -57,3 +57,21 @@ func Execute(sql string, args ...interface{}){
 	rowsAffected, _ := res.RowsAffected()
 	fmt.Println("rowsAffected", rowsAffected)
 }
+
+func ExecuteQuery(sql string, rowsHandler func(rows *sql.Rows) error, args ...interface{}){
+	rows, err := db.Query(sql, args...)
+	if err != nil{
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	err = rowsHandler(rows)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// 在遍历 rows 后检查 rows.Err() 以确保没有发生错误
+	if err := rows.Err(); err != nil {
+		panic(err.Error())
+	}
+}
