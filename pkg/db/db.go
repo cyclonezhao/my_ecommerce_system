@@ -43,8 +43,8 @@ func InitDB() error {
 	return nil
 }
 
-func Execute(sql string, args ...interface{}){
-	stmt, err := db.Prepare(sql)
+func Execute(query string, args ...interface{}){
+	stmt, err := db.Prepare(query)
 	if err != nil{
 		panic(err.Error())
 	}
@@ -58,8 +58,8 @@ func Execute(sql string, args ...interface{}){
 	fmt.Println("rowsAffected", rowsAffected)
 }
 
-func ExecuteQuery(sql string, rowsHandler func(rows *sql.Rows) error, args ...interface{}){
-	rows, err := db.Query(sql, args...)
+func ExecuteQuery(query string, rowsHandler func(rows *sql.Rows) error, args ...interface{}){
+	rows, err := db.Query(query, args...)
 	if err != nil{
 		panic(err.Error())
 	}
@@ -74,4 +74,14 @@ func ExecuteQuery(sql string, rowsHandler func(rows *sql.Rows) error, args ...in
 	if err := rows.Err(); err != nil {
 		panic(err.Error())
 	}
+}
+
+func Exists(query string, args ...interface{}) (bool, error){
+	var exists bool
+	query = fmt.Sprintf("SELECT EXISTS (%s)", query)
+	err := db.QueryRow(query, args...).Scan(&exists)
+	if err != nil{
+		return false, err
+	}
+	return exists, nil
 }

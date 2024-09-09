@@ -12,6 +12,12 @@ func signUp(request SignUpRequest) error{
 	password := request.Password
 
 	// 检查用户是否存在
+	exists, err := existsUserName(userName)
+	if err != nil{
+		return err
+	}else if exists{
+		return fmt.Errorf("用户名[%s]已存在！", userName)
+	}
 
 	// 密码哈希化
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

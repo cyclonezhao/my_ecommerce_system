@@ -55,3 +55,7 @@ func getUserByName(name string) (*User,error) {
 
 	return &users[0], nil
 }
+
+func existsUserName(name string) (bool, error){
+	return db.Exists("SELECT 1 FROM sys_user WHERE name = ? LIMIT 1", name)
+}
