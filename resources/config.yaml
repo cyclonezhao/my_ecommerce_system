@@ -1,0 +1,7 @@
+appName: "my_ecommerce_system"
+addr: ":8080"
+db:
+  driverName: "mysql"
+  dataSourceName: "root:root@/my_ecommerce_system"
+  maxOpenConns: 2000
+  maxIdleConns: 1000

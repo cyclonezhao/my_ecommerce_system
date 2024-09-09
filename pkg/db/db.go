@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"my_ecommerce_system/pkg/config"
 )
 
 // 全局私有单例
@@ -17,10 +18,10 @@ func GenId() uint64{
 
 func InitDB() error {
 	// 数据库类型，后续做成可配置项
-	driverName := "mysql"
-	dataSourceName := "root:root@/my_ecommerce_system"
-	maxOpenConns := 2000
-	maxIdleConns := 1000
+	driverName := config.AppConfig.DB.DriverName
+	dataSourceName := config.AppConfig.DB.DataSourceName
+	maxOpenConns := config.AppConfig.DB.MaxOpenConns
+	maxIdleConns := config.AppConfig.DB.MaxIdleConns
 
 	testdb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
@@ -40,7 +41,7 @@ func InitDB() error {
 	db = testdb
 	db.SetMaxOpenConns(maxOpenConns) //设置最大打开连接数
 	db.SetMaxIdleConns(maxIdleConns)   //设置最大空闲连接数
-	fmt.Println("数据库初始化成功")
+	log.Println("数据库初始化成功")
 	return nil
 }
 

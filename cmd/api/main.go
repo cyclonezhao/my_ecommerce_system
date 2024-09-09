@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"my_ecommerce_system/pkg/config"
 	"my_ecommerce_system/pkg/db"
 	"my_ecommerce_system/pkg/errorhandler"
 	"my_ecommerce_system/pkg/middleware"
@@ -17,6 +19,8 @@ func main() {
 }
 
 func startHTTPServer() {
+	// 初始化配置
+	config.InitConfig()
 	// 初始化数据库
 	db.InitDB()
 
@@ -29,7 +33,8 @@ func startHTTPServer() {
 	r.HandleFunc("/hello", hello)
 
 	// 启动http服务
-	addr := ":8080"
+	log.Printf("%s 开始启动！", config.AppConfig.AppName)
+	addr := config.AppConfig.Addr
 	http.ListenAndServe(addr, middleware.ErrorToHttpHandlingMiddleware(r))
 }
 
