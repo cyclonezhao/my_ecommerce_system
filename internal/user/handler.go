@@ -37,7 +37,7 @@ func SignIn(writer http.ResponseWriter, request *http.Request) error {
 		return &errorhandler.BusinessError{Message:"请求无效", HttpCode:http.StatusBadRequest}
 	}
 
-	tokenString, err := signIn(signInRequest)
+	tokenString, err := signIn(signInRequest, new(StdUserRepository))
 	if err != nil{
 		return err
 	}

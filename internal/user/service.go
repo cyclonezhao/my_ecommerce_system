@@ -15,6 +15,33 @@ import (
 	"time"
 )
 
+// 涉及外部中间件的调用（如MySQL，Redis等）的方法都放在这里，以便单测时能Mock
+type UserRepository interface {
+	ExistsUserName(userName string) (bool, error)
+	AddNewUser(user *User) error
+	GetTokenExpirationTime() time.Duration
+	SetTokenIntoRedis(cacheKey string, tokenString string, expirationTime time.Duration) error
+}
+
+type StdUserRepository struct {}
+
+func (r *StdUserRepository) AddNewUser(newUser *User) error{
+	return AddNewUser(newUser)
+}
+
+func (r *StdUserRepository) ExistsUserName(name string) (bool, error){
+	return ExistsUserName(name)
+}
+
+func (r *StdUserRepository) GetTokenExpirationTime() time.Duration{
+	return time.Duration(config.AppConfig.Jwt.Expire) * time.Second
+}
+
+func (r *StdUserRepository) SetTokenIntoRedis(cacheKey string, tokenString string, expirationTime time.Duration) error{
+	ctx := context.Background()
+	return client.RedisClient.Set(ctx, cacheKey, tokenString, expirationTime).Err()
+}
+
 func SignUpService(request SignUpRequest, repository UserRepository) (string, error) {
 	// 用户名，密码
 	userName := request.Username
@@ -44,11 +71,11 @@ func SignUpService(request SignUpRequest, repository UserRepository) (string, er
 	repository.AddNewUser(newUser)
 
 	// 创建Token
-	tokenString, err := genToken(userName)
+	tokenString, err := genToken(userName, repository)
 	return tokenString, err
 }
 
-func signIn(signInRequest SignUpRequest) (string, error){
+func signIn(signInRequest SignUpRequest, repository UserRepository) (string, error){
 	// 根据传来的userName从DB中查用户
 	user, err := getUserByName(signInRequest.Username)
 	if user == nil{
@@ -66,13 +93,13 @@ func signIn(signInRequest SignUpRequest) (string, error){
 	}
 
 	// 创建Token
-	tokenString, err := genToken(userName)
+	tokenString, err := genToken(userName, repository)
 	return tokenString, err
 }
 
-func genToken(userName string) (string, error){
+func genToken(userName string, repository UserRepository) (string, error){
 	// 创建 JWT Token
-	expirationTime := time.Duration(config.AppConfig.Jwt.Expire) * time.Second
+	expirationTime := repository.GetTokenExpirationTime()
 	claims := &middleware.Claims{
 		UserName: userName,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -88,9 +115,8 @@ func genToken(userName string) (string, error){
 	}
 
 	// 将token存到Redis
-	ctx := context.Background()
 	cacheKey := constant.CACHE_USER_TOKEN + ":" + userName
-	err = client.RedisClient.Set(ctx, cacheKey, tokenString, expirationTime).Err()
+	err = repository.SetTokenIntoRedis(cacheKey, tokenString, expirationTime)
 	if err != nil {
 		log.Print(err)
 		return "", &errorhandler.BusinessError{Message:"缓存Token失败"}
