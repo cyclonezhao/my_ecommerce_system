@@ -47,4 +47,11 @@ func SignIn(writer http.ResponseWriter, request *http.Request) error {
 	return nil
 }
 
-
+func SignOut(writer http.ResponseWriter, request *http.Request) error {
+	userName := request.FormValue("userName")
+	err := signOut(userName)
+	if err == nil{
+		writer.Write([]byte("已登出！"))
+	}
+	return err
+}

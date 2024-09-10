@@ -32,6 +32,7 @@ func startHTTPServer() {
 	r.Handle("/user/signUp", errorhandler.ErrorToHttpResponse(user.SignUp))
 	r.Handle("/user/signIn", errorhandler.ErrorToHttpResponse(user.SignIn))
 	r.Handle("/user/login", errorhandler.ErrorToHttpResponse(user.SignIn))
+	r.Handle("/user/signOut", errorhandler.ErrorToHttpResponse(user.SignOut))
 	r.HandleFunc("/hello", hello)
 
 	// 启动http服务

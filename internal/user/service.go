@@ -98,3 +98,14 @@ func genToken(userName string) (string, error){
 
 	return tokenString, nil
 }
+
+func signOut(userName string) error {
+	ctx := context.Background()
+	cacheKey := constant.CACHE_USER_TOKEN + ":" + userName
+
+	// 返回的第一个值表示成功删除的key的数量。
+	// 如果没有删除成功一个key，就表明cacheKey已经不存在了（可能自动过期了）
+	// 所以登出场景不需要关心这个信息
+	_, err := client.RedisClient.Del(ctx, cacheKey).Result()
+	return err
+}
