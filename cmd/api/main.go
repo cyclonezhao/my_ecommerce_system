@@ -5,7 +5,6 @@ import (
 	"log"
 	"my_ecommerce_system/pkg/client"
 	"my_ecommerce_system/pkg/config"
-	"my_ecommerce_system/pkg/db"
 	"my_ecommerce_system/pkg/errorhandler"
 	"my_ecommerce_system/pkg/middleware"
 	"net/http"
@@ -23,7 +22,7 @@ func startHTTPServer() {
 	// 初始化配置
 	config.InitConfig()
 	// 初始化数据库
-	db.InitDB()
+	client.InitDB()
 	// 初始化Redis连接
 	client.InitRedis()
 
