@@ -20,7 +20,7 @@ func SignUp(writer http.ResponseWriter, request *http.Request) error{
 		return &errorhandler.BusinessError{Message:"请求无效", HttpCode:http.StatusBadRequest}
 	}
 
-	tokenString, err := signUp(signInRequest)
+	tokenString, err := SignUpService(signInRequest, new(StdUserRepository))
 
 	if err != nil{
 		return err

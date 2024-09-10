@@ -15,13 +15,13 @@ import (
 	"time"
 )
 
-func signUp(request SignUpRequest) (string, error) {
+func SignUpService(request SignUpRequest, repository UserRepository) (string, error) {
 	// 用户名，密码
 	userName := request.Username
 	password := request.Password
 
 	// 检查用户是否存在
-	exists, err := existsUserName(userName)
+	exists, err := repository.ExistsUserName(userName)
 	if err != nil{
 		return "", err
 	}else if exists{
@@ -41,7 +41,7 @@ func signUp(request SignUpRequest) (string, error) {
 		Name:userName,
 		Password: string(hashedPassword),
 	}
-	addNewUser(newUser)
+	repository.AddNewUser(newUser)
 
 	// 创建Token
 	tokenString, err := genToken(userName)

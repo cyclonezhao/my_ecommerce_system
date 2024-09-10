@@ -9,7 +9,14 @@ import (
 	"time"
 )
 
-func addNewUser(newUser *User) error{
+type UserRepository interface {
+	ExistsUserName(userName string) (bool, error)
+	AddNewUser(user *User) error
+}
+
+type StdUserRepository struct {}
+
+func (r *StdUserRepository) AddNewUser(newUser *User) error{
 	sql := `INSERT INTO sys_user (id, name, password, created_at) VALUES (?, ?, ?, ?)`
 	return db.Execute(sql, db.GenId(), newUser.Name, newUser.Password, time.Now())
 }
@@ -58,6 +65,6 @@ func getUserByName(name string) (*User,error) {
 	return &users[0], nil
 }
 
-func existsUserName(name string) (bool, error){
+func (r *StdUserRepository) ExistsUserName(name string) (bool, error){
 	return db.Exists("SELECT 1 FROM sys_user WHERE name = ? LIMIT 1", name)
 }
