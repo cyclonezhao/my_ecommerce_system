@@ -10,6 +10,7 @@ import (
 
 type MockUserRepository struct {
 	mock.Mock
+	NewUserPassword string
 }
 
 func (m *MockUserRepository) ExistsUserName(userName string) (bool, error) {
@@ -18,6 +19,8 @@ func (m *MockUserRepository) ExistsUserName(userName string) (bool, error) {
 }
 
 func (m *MockUserRepository) AddNewUser(user *user.User) error {
+	m.NewUserPassword = user.Password
+
 	args := m.Called(user)
 	return args.Error(0)
 }
@@ -57,10 +60,7 @@ func TestSignUp_AddNewUser(t *testing.T) {
 	mockUserService.On("ExistsUserName", "bar").Return(false, nil)
 
 	// Mock AddNewUser 方法，判断密码是否被哈希化
-	mockUserService.On("AddNewUser", mock.MatchedBy(func(user *user.User) bool {
-		// 检查密码是否已被哈希化
-		return user.Name == "bar" && user.Password != "password123"
-	})).Return(nil)
+	mockUserService.On("AddNewUser", mock.Anything).Return(nil)
 	// SetTokenIntoRedis 方法什么都不做，直接返回 nil
 	mockUserService.On("SetTokenIntoRedis", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
@@ -68,8 +68,10 @@ func TestSignUp_AddNewUser(t *testing.T) {
 	request := user.SignUpRequest{Username: "bar", Password: "password123"}
 	token, err := user.SignUpService(request, mockUserService)
 
-	// 断言没有发生错误并且 token 不是空字符串
+	// 断言
 	assert.NoError(t, err)
+	// 密码是被hash的，和原始的不一样
+	assert.NotEqual(t, "password123", mockUserService.NewUserPassword)
 	assert.NotEmpty(t, token)
 
 	mockUserService.AssertExpectations(t)
