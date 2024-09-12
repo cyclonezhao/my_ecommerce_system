@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"my_ecommerce_system/internal/router"
 	"my_ecommerce_system/pkg/client"
 	"my_ecommerce_system/pkg/config"
 	"net/http"
@@ -21,10 +21,7 @@ func startHTTPServer() {
 	client.InitRedis()
 
 	// 新代码
-	engine := gin.Default()
-	engine.GET("/ping", func(ctx *gin.Context){
-		ctx.JSON(200, gin.H{"message": "pong"})
-	})
+	engine := router.NewRouter()
 	engine.Run()
 /*
 	// 配置路由表
