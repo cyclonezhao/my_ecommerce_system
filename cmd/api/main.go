@@ -2,16 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"github.com/gin-gonic/gin"
 	"my_ecommerce_system/pkg/client"
 	"my_ecommerce_system/pkg/config"
-	"my_ecommerce_system/pkg/errorhandler"
-	"my_ecommerce_system/pkg/middleware"
 	"net/http"
-
-	"github.com/gorilla/mux"
-
-	"my_ecommerce_system/internal/user"
 )
 
 func main() {
@@ -26,6 +20,13 @@ func startHTTPServer() {
 	// 初始化Redis连接
 	client.InitRedis()
 
+	// 新代码
+	engine := gin.Default()
+	engine.GET("/ping", func(ctx *gin.Context){
+		ctx.JSON(200, gin.H{"message": "pong"})
+	})
+	engine.Run()
+/*
 	// 配置路由表
 	r := mux.NewRouter()
 	r.HandleFunc("/user/sayHello", user.SayHello)
@@ -41,7 +42,7 @@ func startHTTPServer() {
 
 	handler := middleware.AuthenticationMiddleware(
 		middleware.ErrorToHttpHandlingMiddleware(r))
-	http.ListenAndServe(addr, handler)
+	http.ListenAndServe(addr, handler)*/
 }
 
 func hello(writer http.ResponseWriter, request *http.Request) {
