@@ -15,6 +15,10 @@ func ResponseSuccess(ctx *gin.Context, data interface{}){
 	ctx.JSON(http.StatusOK, data)
 }
 
+func Test(str string){
+	fmt.Println(str)
+}
+
 // 返回失败响应
 func ResponseError(ctx *gin.Context, data interface{}){
 	httpStatus := http.StatusInternalServerError
