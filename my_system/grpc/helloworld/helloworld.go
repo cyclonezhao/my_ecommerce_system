@@ -3,12 +3,12 @@ package helloworld
 import (
 	"context"
 	"log"
-	pb "my_ecommerce_system/proto/helloworld"
+	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
 )
 
 // 创建Server结构体，将SayHello方法注册为它的成员函数
 type Server struct {
-	pb.UnimplementedGreeterServer    // Server结构体继承了pb.UnimplementedGreeterServer结构体的所有方法
+	pb.UnimplementedGreeterServer // Server结构体继承了pb.UnimplementedGreeterServer结构体的所有方法
 }
 
 // 重写pb.GreeterServer.SayHello方法，实现业务逻辑
