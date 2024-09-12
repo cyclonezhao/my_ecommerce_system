@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"my_ecommerce_system/pkg/web"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-func main(){
+func main() {
 	engine := gin.Default()
-	engine.GET("/ping", func(ctx *gin.Context){
+	engine.GET("/ping", func(ctx *gin.Context) {
 		web.Test("==============8080")
 		ctx.JSON(200, gin.H{"message": "pong"})
 	})
