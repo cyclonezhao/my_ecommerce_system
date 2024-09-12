@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"my_ecommerce_system/pkg/errorhandler"
+	"my_ecommerce_system/pkg/web"
 	"net/http"
 )
 
@@ -19,12 +20,16 @@ func SignUp(ctx *gin.Context) {
 	var request SignUpRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil{
-		// TODO 请求无效
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message:"请求无效", HttpCode:http.StatusBadRequest})
+		return
 	}
 
 	tokenString, err := SignUpService(request, new(StdUserRepository))
-
-	ctx.JSON(200, gin.H{"message": tokenString})
+	if err != nil{
+		web.ResponseError(ctx, err)
+	}else{
+		web.ResponseSuccess(ctx, gin.H{"message": tokenString})
+	}
 }
 
 func SignIn(writer http.ResponseWriter, request *http.Request) error {
