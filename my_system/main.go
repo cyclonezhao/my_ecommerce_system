@@ -3,24 +3,63 @@ package main
 import (
 	"fmt"
 	"log"
-	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
 	"my_system/grpc/helloworld"
 	"net"
-
-	"flag"
-	my_client "my_ecommerce_system/pkg/client"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"flag"
+	my_client2 "my_ecommerce_system/my_client"
+	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
+	my_client "my_ecommerce_system/pkg/client"
+
 	"google.golang.org/grpc"
+	"gopkg.in/yaml.v3"
 )
 
 var (
 	grpcPort = flag.Int("port", 58090, "The server port")
 )
 
+type Config struct {
+	DB struct {
+		DriverName     string `yaml:"driverName"`
+		DataSourceName string `yaml:"dataSourceName"`
+		MaxOpenConns   int    `yaml:"maxOpenConns"`
+		MaxIdleConns   int    `yaml:"maxIdleConns"`
+	} `yaml:"db"`
+	Redis struct {
+		Host     string `yaml:"host"`
+		Port     int    `yaml:"port"`
+		DB       int    `yaml:"db"`
+		Password string `yaml:"password"`
+	} `yaml:"redis"`
+	Gateway struct {
+		WriteList []string `yaml:"writeList"`
+	} `yaml:"gateway"`
+	Jwt struct {
+		Expire int `yaml:"expire"`
+	} `yaml:"jwt"`
+}
+
+var config Config
+
+func updateConfigFn(rawConfig []byte) {
+	// 将 YAML 字符串: rawConfig, 反序列化为结构体
+	err := yaml.Unmarshal([]byte(rawConfig), &config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// 打印结构体内容
+	fmt.Printf("%+v\n", config)
+}
+
 func main() {
+	// 拉取配置信息
+	my_client2.GetRawConfigFromConfigCenter("my_system", updateConfigFn)
+
 	// 解析命令行参数
 	flag.Parse()
 
@@ -75,4 +114,5 @@ func main() {
 	// 删除etcd注册信息
 	namingService.DelAllEndpoint()
 	fmt.Printf("Graceful Shutdown Server success\r\n")
+
 }
