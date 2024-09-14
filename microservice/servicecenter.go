@@ -114,8 +114,9 @@ func (naming *NamingService) AddEndpoint(e Endpoint) error {
 	// 这个方法会异步打印出每次续期调用的日志
 	go func() {
 		for ka := range ch {
-			log.Println("ttl:", ka.ID, ka.TTL)
+			log.Printf("%v 自动续期: %d", ka.ID, ka.TTL)
 		}
+		log.Println("终止自动续期: " + key)
 	}()
 
 	// 用于本地记录服务注册信息，便于后续删除或更新。
