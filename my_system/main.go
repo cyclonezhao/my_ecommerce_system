@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"flag"
-	my_client2 "my_ecommerce_system/my_client"
+	microservice "my_ecommerce_system/microservice"
 	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
 	my_client "my_ecommerce_system/pkg/client"
 
@@ -23,18 +23,8 @@ var (
 )
 
 type Config struct {
-	DB struct {
-		DriverName     string `yaml:"driverName"`
-		DataSourceName string `yaml:"dataSourceName"`
-		MaxOpenConns   int    `yaml:"maxOpenConns"`
-		MaxIdleConns   int    `yaml:"maxIdleConns"`
-	} `yaml:"db"`
-	Redis struct {
-		Host     string `yaml:"host"`
-		Port     int    `yaml:"port"`
-		DB       int    `yaml:"db"`
-		Password string `yaml:"password"`
-	} `yaml:"redis"`
+	DB      my_client.DbConfig    `yaml:"db"`
+	Redis   my_client.RedisConfig `yaml:"redis"`
 	Gateway struct {
 		WriteList []string `yaml:"writeList"`
 	} `yaml:"gateway"`
@@ -57,8 +47,16 @@ func updateConfigFn(rawConfig []byte) {
 }
 
 func main() {
+	// 初始化etcd
+	my_client.InitEtcdClient()
 	// 拉取配置信息
-	my_client2.GetRawConfigFromConfigCenter("my_system", updateConfigFn)
+	microservice.GetRawConfigFromConfigCenter("my_system", updateConfigFn)
+
+	// 初始化数据库
+	my_client.InitDB(&config.DB)
+
+	// main退出后，关闭已经打开的第三方网络实体的客户端
+	defer my_client.Close()
 
 	// 解析命令行参数
 	flag.Parse()
@@ -75,13 +73,13 @@ func main() {
 	log.Printf("serving gRPC on %v", lis.Addr())
 
 	// 初始化ETCD注册器
-	namingService, err := my_client.NewLocalDefNamingService("my_system")
+	namingService, err := microservice.NewNamingService("my_system")
 	if err != nil {
 		log.Fatalf("failed to create NamingService: %v", err)
 	}
 
 	// 将本实例注册到ETCD
-	err = namingService.AddEndpoint(my_client.Endpoint{
+	err = namingService.AddEndpoint(microservice.Endpoint{
 		Addr:    "localhost",
 		Name:    "user",
 		Port:    *grpcPort,
@@ -106,7 +104,6 @@ func main() {
 	// syscall.SIGINT：通常是通过用户在终端按下 Ctrl+C 触发的中断信号
 	// syscall.SIGTERM：是操作系统发送给程序的终止信号，可以通过 kill <pid> 命令发送 SIGTERM 信号
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
 	<-quit
 	fmt.Printf("Shutdown Server ... \r\n")
 	// 停止grpc服务
@@ -114,5 +111,4 @@ func main() {
 	// 删除etcd注册信息
 	namingService.DelAllEndpoint()
 	fmt.Printf("Graceful Shutdown Server success\r\n")
-
 }

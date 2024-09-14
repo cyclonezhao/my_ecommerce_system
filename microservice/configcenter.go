@@ -1,10 +1,12 @@
-package client
+package microservice
 
 import (
 	"context"
 	"fmt"
 	"log"
 	"time"
+
+	my_client "my_ecommerce_system/pkg/client"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -16,14 +18,7 @@ const (
 // 从配置中心拉取原始配置信息
 func GetRawConfigFromConfigCenter(appName string, updateConfigFn func(yamlStr []byte)) {
 	// 连接 etcd 客户端
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer cli.Close()
+	cli := my_client.EtcdClientWrapper.EtcdClient
 
 	// 从 etcd 获取配置信息
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -44,6 +39,7 @@ func GetRawConfigFromConfigCenter(appName string, updateConfigFn func(yamlStr []
 }
 
 func watchConfig(cli *clientv3.Client, key string, updateConfigFn func(yamlStr []byte)) {
+	fmt.Printf("开启监听配置变化: %s\n", key)
 	rch := cli.Watch(context.Background(), key)
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
