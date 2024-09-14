@@ -73,6 +73,7 @@ func main() {
 
 	// 创建 cmux 实例，用于在同一个端口同时监听处理gRPC和http请求
 	m := cmux.New(lis)
+	var cmuxClosed = false
 	// 匹配 gRPC 请求
 	grpcL := m.MatchWithWriters(cmux.HTTP2MatchHeaderFieldSendSettings("content-type", "application/grpc"))
 	// 匹配 HTTP 请求
@@ -106,7 +107,10 @@ func main() {
 	log.Printf("server listening at %v", grpcL.Addr())
 	go func() {
 		if err := grpcServer.Serve(grpcL); err != nil {
-			log.Fatalf("failed to serve: %v", err)
+			if cmuxClosed {
+				return
+			}
+			log.Fatalf("failed to serve gRPC: %v", err)
 			namingService.DelAllEndpoint()
 		}
 	}()
@@ -126,13 +130,19 @@ func main() {
 	go func() {
 		log.Printf("HTTP server listening at %v", grpcL.Addr())
 		if err := httpServer.Serve(httpL); err != nil {
+			if cmuxClosed {
+				return
+			}
 			log.Fatalf("Failed to serve HTTP: %v", err)
 		}
 	}()
 
 	go func() {
 		if err := m.Serve(); err != nil {
-			log.Fatalf("Failed to serve: %v", err)
+			if cmuxClosed {
+				return
+			}
+			log.Fatalf("Failed to serve c: %v", err)
 		}
 	}()
 
@@ -145,6 +155,7 @@ func main() {
 	fmt.Println("Shutdown Server ...")
 	// cmux必须关掉，不然下面的grpcServer.GracefulStop()会阻塞
 	// 原因猜测是cmux维持着对底层连接的控制，导致 grpcServer.GracefulStop() 持续等待，阻塞停止流程
+	cmuxClosed = true
 	m.Close()
 	// 停止grpc服务
 	grpcServer.GracefulStop()
