@@ -51,10 +51,11 @@ func updateConfigFn(rawConfig []byte) {
 }
 
 func main() {
+	serviceName := "my_system"
 	// 初始化etcd
 	my_client.InitEtcdClient()
 	// 拉取配置信息
-	microservice.GetRawConfigFromConfigCenter("my_system", updateConfigFn)
+	microservice.GetRawConfigFromConfigCenter(serviceName, updateConfigFn)
 
 	// 初始化数据库
 	my_client.InitDB(&config.DB)
@@ -86,20 +87,13 @@ func main() {
 	log.Printf("serving gRPC on %v", lis.Addr())
 
 	// 初始化ETCD注册器
-	namingService, err := microservice.NewNamingService("my_system")
-	if err != nil {
-		log.Fatalf("failed to create NamingService: %v", err)
-	}
-
-	// 将本实例注册到ETCD
-	err = namingService.AddEndpoint(microservice.Endpoint{
-		Addr:    "localhost",
-		Name:    "user",
-		Port:    *grpcPort,
-		Version: "1.0.0",
+	err = microservice.RegisterSelf(&microservice.ServiceInstance{
+		Addr:        "localhost",
+		Port:        *grpcPort,
+		ServiceName: serviceName,
 	})
 	if err != nil {
-		log.Fatalf("failed to reg etcd: %v", err)
+		log.Fatalf("服务实例注册失败: %v", err)
 	}
 
 	// 启动RPC并监听。另起一个协程运行是为了避免  s.Serve(grpcL) 阻塞主协程
@@ -111,7 +105,7 @@ func main() {
 				return
 			}
 			log.Fatalf("failed to serve gRPC: %v", err)
-			namingService.DelAllEndpoint()
+			microservice.DelEndpoint()
 		}
 	}()
 
@@ -161,6 +155,6 @@ func main() {
 	grpcServer.GracefulStop()
 	fmt.Println("gRPC服务已停止")
 	// 删除etcd注册信息
-	namingService.DelAllEndpoint()
+	microservice.DelEndpoint()
 	fmt.Println("Graceful Shutdown Server success.")
 }

@@ -11,6 +11,8 @@ import (
 
 	"time"
 
+	my_client "my_ecommerce_system/pkg/client"
+
 	"google.golang.org/grpc"
 )
 
@@ -18,14 +20,11 @@ func main() {
 	// 解析命令行参数
 	flag.Parse()
 
-	// 初始化etcd 服务注册器
-	namingService, err := microservice.NewNamingService("my_system")
-	if err != nil {
-		log.Fatalf("Create naming service error: %v", err)
-	}
+	// 初始化etcd
+	my_client.InitEtcdClient()
 
 	// 通过“etcd 服务注册器”创建gRPC解析器
-	resolver, err := namingService.NewEtcdResolver()
+	resolver, err := microservice.NewEtcdResolver()
 	if err != nil {
 		log.Fatalf("Create etcd resolver error: %v", err)
 	}
@@ -34,7 +33,7 @@ func main() {
 	// target 原来是写死 "localhost:58090"，现在要改为etcd上的二级服务
 	// 用resolver通过二级服务名称找到实例列表
 	// 通过rr负载均衡访问实例列表
-	pathServerName := namingService.GetPathServerName("user")
+	pathServerName := microservice.GetPathServerName("my_system")
 	conn, err := grpc.Dial(
 		pathServerName,
 		grpc.WithInsecure(),
