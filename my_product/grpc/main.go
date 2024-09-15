@@ -7,7 +7,7 @@ import (
 	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
 
 	"flag"
-	my_client "my_ecommerce_system/pkg/client"
+	microservice "my_ecommerce_system/microservice"
 
 	"time"
 
@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	// 初始化etcd 服务注册器
-	namingService, err := my_client.NewLocalDefNamingService("my_system")
+	namingService, err := microservice.NewNamingService("my_system")
 	if err != nil {
 		log.Fatalf("Create naming service error: %v", err)
 	}
