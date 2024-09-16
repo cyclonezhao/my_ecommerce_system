@@ -1,11 +1,12 @@
 package unit
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"my_ecommerce_system/internal/user"
+	"my_system/internal/user"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 type MockUserRepository struct {

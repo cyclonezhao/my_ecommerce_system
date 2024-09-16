@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"flag"
-	microservice "my_ecommerce_system/microservice"
 	pb "my_ecommerce_system/my_system_api/grpc/proto/helloworld"
 	my_client "my_ecommerce_system/pkg/client"
+	microservice "my_ecommerce_system/pkg/microservice"
 	"my_ecommerce_system/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
