@@ -3,16 +3,17 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"my_ecommerce_system/pkg/client"
-	"my_ecommerce_system/pkg/config"
 	"my_ecommerce_system/pkg/constant"
 	"my_ecommerce_system/pkg/errorhandler"
 	"my_ecommerce_system/pkg/middleware"
+	"my_system/internal/config"
 	"net/http"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // 涉及外部中间件的调用（如MySQL，Redis等）的方法都放在这里，以便单测时能Mock
@@ -23,21 +24,21 @@ type UserRepository interface {
 	SetTokenIntoRedis(cacheKey string, tokenString string, expirationTime time.Duration) error
 }
 
-type StdUserRepository struct {}
+type StdUserRepository struct{}
 
-func (r *StdUserRepository) AddNewUser(newUser *User) error{
+func (r *StdUserRepository) AddNewUser(newUser *User) error {
 	return AddNewUser(newUser)
 }
 
-func (r *StdUserRepository) ExistsUserName(name string) (bool, error){
+func (r *StdUserRepository) ExistsUserName(name string) (bool, error) {
 	return ExistsUserName(name)
 }
 
-func (r *StdUserRepository) GetTokenExpirationTime() time.Duration{
+func (r *StdUserRepository) GetTokenExpirationTime() time.Duration {
 	return time.Duration(config.AppConfig.Jwt.Expire) * time.Second
 }
 
-func (r *StdUserRepository) SetTokenIntoRedis(cacheKey string, tokenString string, expirationTime time.Duration) error{
+func (r *StdUserRepository) SetTokenIntoRedis(cacheKey string, tokenString string, expirationTime time.Duration) error {
 	ctx := context.Background()
 	return client.RedisClient.Set(ctx, cacheKey, tokenString, expirationTime).Err()
 }
@@ -49,23 +50,23 @@ func SignUpService(request SignUpRequest, repository UserRepository) (string, er
 
 	// 检查用户是否存在
 	exists, err := repository.ExistsUserName(userName)
-	if err != nil{
+	if err != nil {
 		return "", err
-	}else if exists{
+	} else if exists {
 		return "", &errorhandler.BusinessError{
-			Message:fmt.Sprintf("用户名[%s]已存在！", userName),
+			Message: fmt.Sprintf("用户名[%s]已存在！", userName),
 		}
 	}
 
 	// 密码哈希化
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil{
+	if err != nil {
 		return "", fmt.Errorf("密码明文哈希化失败")
 	}
 
 	// 创建用户
 	newUser := &User{
-		Name:userName,
+		Name:     userName,
 		Password: string(hashedPassword),
 	}
 	repository.AddNewUser(newUser)
@@ -75,21 +76,21 @@ func SignUpService(request SignUpRequest, repository UserRepository) (string, er
 	return tokenString, err
 }
 
-func signIn(signInRequest SignUpRequest, repository UserRepository) (string, error){
+func signIn(signInRequest SignUpRequest, repository UserRepository) (string, error) {
 	// 根据传来的userName从DB中查用户
 	user, err := getUserByName(signInRequest.Username)
-	if user == nil{
-		return "", &errorhandler.BusinessError{Message:"用户不存在", HttpCode:http.StatusUnauthorized}
-	}else if err != nil{
-		return "", &errorhandler.BusinessError{Message:err.Error(), HttpCode:http.StatusUnauthorized}
+	if user == nil {
+		return "", &errorhandler.BusinessError{Message: "用户不存在", HttpCode: http.StatusUnauthorized}
+	} else if err != nil {
+		return "", &errorhandler.BusinessError{Message: err.Error(), HttpCode: http.StatusUnauthorized}
 	}
 
 	userName := user.Name
 	password := user.Password
 
 	// 验证密码
-	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(signInRequest.Password)); err != nil{
-		return "", &errorhandler.BusinessError{Message:"用户名或密码错误", HttpCode:http.StatusUnauthorized}
+	if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(signInRequest.Password)); err != nil {
+		return "", &errorhandler.BusinessError{Message: "用户名或密码错误", HttpCode: http.StatusUnauthorized}
 	}
 
 	// 创建Token
@@ -97,7 +98,7 @@ func signIn(signInRequest SignUpRequest, repository UserRepository) (string, err
 	return tokenString, err
 }
 
-func genToken(userName string, repository UserRepository) (string, error){
+func genToken(userName string, repository UserRepository) (string, error) {
 	// 创建 JWT Token
 	expirationTime := repository.GetTokenExpirationTime()
 	claims := &middleware.Claims{
@@ -110,8 +111,8 @@ func genToken(userName string, repository UserRepository) (string, error){
 
 	// 使用密钥签名token
 	tokenString, err := token.SignedString([]byte(constant.JWT_SECRET_KEY))
-	if err != nil{
-		return "", &errorhandler.BusinessError{Message:"创建Token失败"}
+	if err != nil {
+		return "", &errorhandler.BusinessError{Message: "创建Token失败"}
 	}
 
 	// 将token存到Redis
@@ -119,7 +120,7 @@ func genToken(userName string, repository UserRepository) (string, error){
 	err = repository.SetTokenIntoRedis(cacheKey, tokenString, expirationTime)
 	if err != nil {
 		log.Print(err)
-		return "", &errorhandler.BusinessError{Message:"缓存Token失败"}
+		return "", &errorhandler.BusinessError{Message: "缓存Token失败"}
 	}
 
 	return tokenString, nil
