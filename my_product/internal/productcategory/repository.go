@@ -25,7 +25,21 @@ func UpdateProductCategory(productcategory *ProductCategory) error {
 
 func GetProductCategory(id uint64) (*ProductCategory, error) {
 	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category WHERE id = ?`
+	productCategoryList, err := queryProductCategory(&sqlStr, id)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return &productCategoryList[0], nil
+}
+
+func GetProductCategoryList() ([]ProductCategory, error) {
+	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category`
+	return queryProductCategory(&sqlStr)
+}
+
+func queryProductCategory(sqlStr *string, args ...interface{}) ([]ProductCategory, error) {
 	var productCategoryList []ProductCategory
 
 	// 貌似当前的数据库驱动无法自动将 []uint8 转换为 time.Time
@@ -34,7 +48,7 @@ func GetProductCategory(id uint64) (*ProductCategory, error) {
 	var createdAt sql.NullString
 	var updatedAt sql.NullString
 
-	err := db.ExecuteQuery(sqlStr, func(rows *sql.Rows) error {
+	err := db.ExecuteQuery(*sqlStr, func(rows *sql.Rows) error {
 		for rows.Next() {
 			var productCategory ProductCategory
 			err := rows.Scan(&productCategory.Id, &productCategory.Name, &createdAt, &updatedAt)
@@ -61,11 +75,11 @@ func GetProductCategory(id uint64) (*ProductCategory, error) {
 			productCategoryList = append(productCategoryList, productCategory)
 		}
 		return nil
-	}, id)
+	}, args...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &productCategoryList[0], nil
+	return productCategoryList, nil
 }

@@ -89,8 +89,17 @@ func GetProductCategoryHandler(ctx *gin.Context) {
 		web.ResponseError(ctx, err)
 	} else {
 		b, _ := json.Marshal(productCategory)
-		web.ResponseSuccess(ctx, string(b))
+		web.ResponseSuccess(ctx, b)
 	}
 }
 
 // 列表商品分类
+func GetProductCategoryHandlerList(ctx *gin.Context) {
+	productCategoryList, err := GetProductCategoryServiceList(StdProductCategoryRepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		b, _ := json.Marshal(productCategoryList)
+		web.ResponseSuccess(ctx, b)
+	}
+}

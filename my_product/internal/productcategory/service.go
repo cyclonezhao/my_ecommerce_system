@@ -8,6 +8,7 @@ type ProductCategoryRepository interface {
 	DeleteProductCategory(id uint64) error
 	UpdateProductCategory(productcategory *ProductCategory) error
 	GetProductCategory(id uint64) (*ProductCategory, error)
+	GetProductCategoryList() ([]ProductCategory, error)
 }
 
 // repository的标准实现
@@ -27,6 +28,10 @@ func (*StdProductCategoryRepository) UpdateProductCategory(productcategory *Prod
 
 func (*StdProductCategoryRepository) GetProductCategory(id uint64) (*ProductCategory, error) {
 	return GetProductCategory(id)
+}
+
+func (*StdProductCategoryRepository) GetProductCategoryList() ([]ProductCategory, error) {
+	return GetProductCategoryList()
 }
 
 // repository的标准实现实例
@@ -49,4 +54,8 @@ func UpdateProductCategoryService(productcategory *ProductCategory, repository P
 
 func GetProductCategoryService(id uint64, repository ProductCategoryRepository) (*ProductCategory, error) {
 	return repository.GetProductCategory(id)
+}
+
+func GetProductCategoryServiceList(repository ProductCategoryRepository) ([]ProductCategory, error) {
+	return repository.GetProductCategoryList()
 }
