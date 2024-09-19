@@ -7,6 +7,8 @@ import (
 
 	"strconv"
 
+	"encoding/json"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -69,4 +71,26 @@ func UpdateProductCategoryHandler(ctx *gin.Context) {
 }
 
 // 查看商品分类
+func GetProductCategoryHandler(ctx *gin.Context) {
+	rawId, exist := ctx.GetQuery("id")
+	if !exist {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求必须包含id参数", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	id, err := strconv.ParseUint(rawId, 10, 64)
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "id值必须为整形", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	productCategory, err := GetProductCategoryService(id, StdProductCategoryRepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		b, _ := json.Marshal(productCategory)
+		web.ResponseSuccess(ctx, string(b))
+	}
+}
+
 // 列表商品分类
