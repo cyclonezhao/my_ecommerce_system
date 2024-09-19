@@ -1,14 +1,15 @@
-package productcategory
+package dao
 
 import (
 	"my_ecommerce_system/pkg/db"
+	"my_product/internal/productcategory/dto"
 
 	"database/sql"
 	"my_ecommerce_system/pkg/constant"
 	"time"
 )
 
-func AddProductCategory(productcategory *ProductCategory) error {
+func AddProductCategory(productcategory *dto.ProductCategory) error {
 	sql := `INSERT INTO prod_category (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)`
 	return db.Execute(sql, db.GenId(), productcategory.Name, time.Now(), time.Now())
 }
@@ -18,12 +19,12 @@ func DeleteProductCategory(id uint64) error {
 	return db.Execute(sql, id)
 }
 
-func UpdateProductCategory(productcategory *ProductCategory) error {
+func UpdateProductCategory(productcategory *dto.ProductCategory) error {
 	sql := `UPDATE prod_category SET name = ?, updated_at = ? WHERE id = ?) VALUES (?, ?, ?)`
 	return db.Execute(sql, productcategory.Name, time.Now(), productcategory.Id)
 }
 
-func GetProductCategory(id uint64) (*ProductCategory, error) {
+func GetProductCategory(id uint64) (*dto.ProductCategory, error) {
 	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category WHERE id = ?`
 	productCategoryList, err := queryProductCategory(&sqlStr, id)
 
@@ -34,13 +35,13 @@ func GetProductCategory(id uint64) (*ProductCategory, error) {
 	return &productCategoryList[0], nil
 }
 
-func GetProductCategoryList() ([]ProductCategory, error) {
+func GetProductCategoryList() ([]dto.ProductCategory, error) {
 	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category`
 	return queryProductCategory(&sqlStr)
 }
 
-func queryProductCategory(sqlStr *string, args ...interface{}) ([]ProductCategory, error) {
-	var productCategoryList []ProductCategory
+func queryProductCategory(sqlStr *string, args ...interface{}) ([]dto.ProductCategory, error) {
+	var productCategoryList []dto.ProductCategory
 
 	// 貌似当前的数据库驱动无法自动将 []uint8 转换为 time.Time
 	// 故手动进行转换一下
@@ -50,7 +51,7 @@ func queryProductCategory(sqlStr *string, args ...interface{}) ([]ProductCategor
 
 	err := db.ExecuteQuery(*sqlStr, func(rows *sql.Rows) error {
 		for rows.Next() {
-			var productCategory ProductCategory
+			var productCategory dto.ProductCategory
 			err := rows.Scan(&productCategory.Id, &productCategory.Name, &createdAt, &updatedAt)
 			if err != nil {
 				return err

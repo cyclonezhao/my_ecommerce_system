@@ -1,4 +1,4 @@
-package productcategory
+package dto
 
 import (
 	"time"

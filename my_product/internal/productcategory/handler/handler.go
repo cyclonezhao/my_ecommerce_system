@@ -1,8 +1,10 @@
-package productcategory
+package handler
 
 import (
 	"my_ecommerce_system/pkg/errorhandler"
 	"my_ecommerce_system/pkg/web"
+	"my_product/internal/productcategory/dto"
+	"my_product/internal/productcategory/service"
 	"net/http"
 
 	"strconv"
@@ -14,14 +16,14 @@ import (
 
 // 增加商品分类
 func AddProductCategoryHandler(ctx *gin.Context) {
-	var productcategory ProductCategory
+	var productcategory dto.ProductCategory
 	err := ctx.ShouldBind(&productcategory)
 	if err != nil {
 		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求无效", HttpCode: http.StatusBadRequest})
 		return
 	}
 
-	err = AddProductCategoryService(&productcategory, StdProductCategoryRepositoryInstance)
+	err = service.AddProductCategory(&productcategory, service.StdProductCategoryRepositoryInstance)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
@@ -44,7 +46,7 @@ func DeleteProductCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	err = DeleteProductCategoryService(id, StdProductCategoryRepositoryInstance)
+	err = service.DeleteProductCategory(id, service.StdProductCategoryRepositoryInstance)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
@@ -54,14 +56,14 @@ func DeleteProductCategoryHandler(ctx *gin.Context) {
 
 // 修改商品分类
 func UpdateProductCategoryHandler(ctx *gin.Context) {
-	var productcategory ProductCategory
+	var productcategory dto.ProductCategory
 	err := ctx.ShouldBind(&productcategory)
 	if err != nil {
 		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求无效", HttpCode: http.StatusBadRequest})
 		return
 	}
 
-	err = UpdateProductCategoryService(&productcategory, StdProductCategoryRepositoryInstance)
+	err = service.UpdateProductCategory(&productcategory, service.StdProductCategoryRepositoryInstance)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
@@ -84,7 +86,7 @@ func GetProductCategoryHandler(ctx *gin.Context) {
 		return
 	}
 
-	productCategory, err := GetProductCategoryService(id, StdProductCategoryRepositoryInstance)
+	productCategory, err := service.GetProductCategory(id, service.StdProductCategoryRepositoryInstance)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
@@ -95,7 +97,7 @@ func GetProductCategoryHandler(ctx *gin.Context) {
 
 // 列表商品分类
 func GetProductCategoryHandlerList(ctx *gin.Context) {
-	productCategoryList, err := GetProductCategoryServiceList(StdProductCategoryRepositoryInstance)
+	productCategoryList, err := service.GetProductCategoryList(service.StdProductCategoryRepositoryInstance)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
