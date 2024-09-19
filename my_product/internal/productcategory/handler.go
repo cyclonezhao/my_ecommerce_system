@@ -51,5 +51,22 @@ func DeleteProductCategoryHandler(ctx *gin.Context) {
 }
 
 // 修改商品分类
+func UpdateProductCategoryHandler(ctx *gin.Context) {
+	var productcategory ProductCategory
+	err := ctx.ShouldBind(&productcategory)
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求无效", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	err = UpdateProductCategoryService(&productcategory, StdProductCategoryRepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, gin.H{"message": "更新成功"})
+	}
+
+}
+
 // 查看商品分类
 // 列表商品分类

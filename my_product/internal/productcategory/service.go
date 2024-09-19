@@ -1,9 +1,12 @@
 package productcategory
 
+import "fmt"
+
 // 涉及外部中间件的调用（如MySQL，Redis等）的方法都放在这里，以便单测时能Mock
 type ProductCategoryRepository interface {
 	AddProductCategory(productcategory *ProductCategory) error
 	DeleteProductCategory(id uint64) error
+	UpdateProductCategory(productcategory *ProductCategory) error
 }
 
 // repository的标准实现
@@ -17,6 +20,10 @@ func (*StdProductCategoryRepository) DeleteProductCategory(id uint64) error {
 	return DeleteProductCategory(id)
 }
 
+func (*StdProductCategoryRepository) UpdateProductCategory(productcategory *ProductCategory) error {
+	return UpdateProductCategory(productcategory)
+}
+
 // repository的标准实现实例
 var StdProductCategoryRepositoryInstance *StdProductCategoryRepository = new(StdProductCategoryRepository)
 
@@ -26,4 +33,11 @@ func AddProductCategoryService(productcategory *ProductCategory, repository Prod
 
 func DeleteProductCategoryService(id uint64, repository ProductCategoryRepository) error {
 	return repository.DeleteProductCategory(id)
+}
+
+func UpdateProductCategoryService(productcategory *ProductCategory, repository ProductCategoryRepository) error {
+	if productcategory.Id == 0 {
+		return fmt.Errorf("更新操作，id不能为空！")
+	}
+	return repository.UpdateProductCategory(productcategory)
 }

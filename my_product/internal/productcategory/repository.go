@@ -15,3 +15,8 @@ func DeleteProductCategory(id uint64) error {
 	sql := `DELETE FROM prod_category WHERE id = ?`
 	return db.Execute(sql, id)
 }
+
+func UpdateProductCategory(productcategory *ProductCategory) error {
+	sql := `UPDATE prod_category SET name = ?, updated_at = ? WHERE id = ?) VALUES (?, ?, ?)`
+	return db.Execute(sql, productcategory.Name, time.Now(), productcategory.Id)
+}
