@@ -9,8 +9,6 @@ import (
 
 	"strconv"
 
-	"encoding/json"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -90,8 +88,7 @@ func GetProductCategoryHandler(ctx *gin.Context) {
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
-		b, _ := json.Marshal(productCategory)
-		web.ResponseSuccess(ctx, b)
+		web.ResponseSuccess(ctx, productCategory)
 	}
 }
 
@@ -101,7 +98,6 @@ func GetProductCategoryHandlerList(ctx *gin.Context) {
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {
-		b, _ := json.Marshal(productCategoryList)
-		web.ResponseSuccess(ctx, b)
+		web.ResponseSuccess(ctx, productCategoryList)
 	}
 }

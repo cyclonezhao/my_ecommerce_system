@@ -4,83 +4,39 @@ import (
 	"my_ecommerce_system/pkg/db"
 	"my_product/internal/productcategory/dto"
 
-	"database/sql"
-	"my_ecommerce_system/pkg/constant"
+	my_client "my_ecommerce_system/pkg/client"
 	"time"
 )
 
 func AddProductCategory(productcategory *dto.ProductCategory) error {
-	sql := `INSERT INTO prod_category (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)`
-	return db.Execute(sql, db.GenId(), productcategory.Name, time.Now(), time.Now())
+	productcategory.Id = db.GenId()
+	productcategory.CreatedAt = time.Now()
+	productcategory.UpdatedAt = time.Now()
+	_, err := my_client.XORM.Insert(productcategory)
+	return err
 }
 
 func DeleteProductCategory(id uint64) error {
 	sql := `DELETE FROM prod_category WHERE id = ?`
-	return db.Execute(sql, id)
+	_, err := my_client.XORM.Exec(sql, id)
+	return err
 }
 
 func UpdateProductCategory(productcategory *dto.ProductCategory) error {
-	sql := `UPDATE prod_category SET name = ?, updated_at = ? WHERE id = ?) VALUES (?, ?, ?)`
-	return db.Execute(sql, productcategory.Name, time.Now(), productcategory.Id)
+	productcategory.UpdatedAt = time.Now()
+	_, err := my_client.XORM.ID(productcategory.Id).Update(productcategory)
+	return err
 }
 
 func GetProductCategory(id uint64) (*dto.ProductCategory, error) {
-	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category WHERE id = ?`
-	productCategoryList, err := queryProductCategory(&sqlStr, id)
+	var productCategory dto.ProductCategory
+	_, err := my_client.XORM.ID(id).Get(&productCategory)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &productCategoryList[0], nil
+	return &productCategory, err
 }
 
 func GetProductCategoryList() ([]dto.ProductCategory, error) {
-	sqlStr := `SELECT id, name, created_at, updated_at FROM prod_category`
-	return queryProductCategory(&sqlStr)
-}
-
-func queryProductCategory(sqlStr *string, args ...interface{}) ([]dto.ProductCategory, error) {
 	var productCategoryList []dto.ProductCategory
-
-	// 貌似当前的数据库驱动无法自动将 []uint8 转换为 time.Time
-	// 故手动进行转换一下
-	// 这是这样一来就破坏了代码统一性
-	var createdAt sql.NullString
-	var updatedAt sql.NullString
-
-	err := db.ExecuteQuery(*sqlStr, func(rows *sql.Rows) error {
-		for rows.Next() {
-			var productCategory dto.ProductCategory
-			err := rows.Scan(&productCategory.Id, &productCategory.Name, &createdAt, &updatedAt)
-			if err != nil {
-				return err
-			}
-
-			if createdAt.Valid {
-				// 很奇怪的时间日期格式化模板：constant.DATE_TIME_FORMAT
-				productCategory.Created_at, err = time.Parse(constant.DATE_TIME_FORMAT, createdAt.String)
-				if err != nil {
-					return err
-				}
-			}
-
-			if updatedAt.Valid {
-				// 很奇怪的时间日期格式化模板：constant.DATE_TIME_FORMAT
-				productCategory.Updated_at, err = time.Parse(constant.DATE_TIME_FORMAT, updatedAt.String)
-				if err != nil {
-					return err
-				}
-			}
-
-			productCategoryList = append(productCategoryList, productCategory)
-		}
-		return nil
-	}, args...)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return productCategoryList, nil
+	err := my_client.XORM.Find(&productCategoryList)
+	return productCategoryList, err
 }

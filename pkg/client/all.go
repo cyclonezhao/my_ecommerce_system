@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"xorm.io/xorm"
+
 	"github.com/go-redis/redis/v8"
 )
 
@@ -13,6 +15,7 @@ var closerMap = make(map[string]io.Closer)
 var RedisClient *redis.Client
 var EtcdClientWrapper *EtcdClientWrapperStruct
 var DB *sql.DB
+var XORM *xorm.Engine
 
 // 关闭所有初始化的客户端
 func Close() {
@@ -34,6 +37,12 @@ func InitEtcdClient() {
 func InitDB(config *DbConfig) {
 	DB = initDB(config)
 	closerMap["db"] = DB
+}
+
+// 初始化 XORM
+func InitXORM(config *DbConfig) {
+	XORM = initXORM(config)
+	closerMap["xorm"] = XORM
 }
 
 // 初始化Redis

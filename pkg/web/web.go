@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"log"
 	"my_ecommerce_system/pkg/errorhandler"
 	"net/http"
 
@@ -35,6 +36,7 @@ func ResponseError(ctx *gin.Context, data interface{}) {
 		msg = businessError.Error()
 	} else if err, ok := data.(error); ok {
 		msg = err.Error()
+		log.Println(err)
 	}
 
 	responseData := gin.H{"code": code, "msg": msg}
