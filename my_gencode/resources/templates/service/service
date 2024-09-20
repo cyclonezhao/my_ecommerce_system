@@ -1,0 +1,34 @@
+package service
+
+import (
+	"fmt"
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/dto"
+)
+
+// 新增{{.Table.Comment}}
+func Add{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}, repository {{.EntityName}}Repository) error {
+	return repository.Add{{.EntityName}}({{ToLower .EntityName}})
+}
+
+// 删除{{.Table.Comment}}
+func Delete{{.EntityName}}(id uint64, repository {{.EntityName}}Repository) error {
+	return repository.Delete{{.EntityName}}(id)
+}
+
+// 修改{{.Table.Comment}}
+func Update{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}, repository {{.EntityName}}Repository) error {
+	if {{ToLower .EntityName}}.Id == 0 {
+		return fmt.Errorf("更新操作，id不能为空！")
+	}
+	return repository.Update{{.EntityName}}({{ToLower .EntityName}})
+}
+
+// 获取{{.Table.Comment}}
+func Get{{.EntityName}}(id uint64, repository {{.EntityName}}Repository) (*dto.{{.EntityName}}, error) {
+	return repository.Get{{.EntityName}}(id)
+}
+
+// 获取{{.Table.Comment}}列表
+func Get{{.EntityName}}List(repository {{.EntityName}}Repository) ([]dto.{{.EntityName}}, error) {
+	return repository.Get{{.EntityName}}List()
+}

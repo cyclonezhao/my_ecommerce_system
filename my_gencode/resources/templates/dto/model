@@ -1,0 +1,15 @@
+package dto
+
+import (
+	"time"
+)
+
+{{ $length := len .Table.Comment}}{{ if gt $length 0 }}// {{.Table.Comment}}实体{{ end }}
+type {{.EntityName}} struct {
+	{{range .Columns}}{{SnakeToUpperCamelCase .ColumnName}}	{{GetGoTypeByDBType .DataType}}	`json:"{{SnakeToLowerCamelCase .ColumnName}}" {{ $length := len .ColumnKey}}{{ if gt $length 0 }}xorm:"pk"{{end}}`	{{ $length := len .ColumnComment}} {{ if gt $length 0 }}// {{.ColumnComment}}{{ end }}
+	{{end}}
+}
+
+func (*{{.EntityName}}) TableName() string {
+	return "{{.Table.Name}}"
+}

@@ -1,0 +1,47 @@
+package dao
+
+import (
+	"my_ecommerce_system/pkg/db"
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/dto"
+
+	my_client "my_ecommerce_system/pkg/client"
+	"time"
+)
+
+// 新增{{.Table.Comment}}
+func Add{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error {
+	{{ToLower .EntityName}}.Id = db.GenId()
+	{{ToLower .EntityName}}.CreatedAt = time.Now()
+	{{ToLower .EntityName}}.UpdatedAt = time.Now()
+	_, err := my_client.XORM.Insert({{ToLower .EntityName}})
+	return err
+}
+
+// 删除{{.Table.Comment}}
+func Delete{{.EntityName}}(id uint64) error {
+	sql := `DELETE FROM {{.Table.Name}} WHERE id = ?`
+	_, err := my_client.XORM.Exec(sql, id)
+	return err
+}
+
+// 修改{{.Table.Comment}}
+func Update{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error {
+	{{ToLower .EntityName}}.UpdatedAt = time.Now()
+	_, err := my_client.XORM.ID({{ToLower .EntityName}}.Id).Update({{ToLower .EntityName}})
+	return err
+}
+
+// 获取{{.Table.Comment}}
+func Get{{.EntityName}}(id uint64) (*dto.{{.EntityName}}, error) {
+	var {{ToLower .EntityName}} dto.{{.EntityName}}
+	_, err := my_client.XORM.ID(id).Get(&{{ToLower .EntityName}})
+
+	return &{{ToLower .EntityName}}, err
+}
+
+// 获取{{.Table.Comment}}列表
+func Get{{.EntityName}}List() ([]dto.{{.EntityName}}, error) {
+	var {{ToLower .EntityName}}List []dto.{{.EntityName}}
+	err := my_client.XORM.Find(&{{ToLower .EntityName}}List)
+	return {{ToLower .EntityName}}List, err
+}

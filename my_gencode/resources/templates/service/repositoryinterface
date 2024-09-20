@@ -1,0 +1,41 @@
+package service
+
+import (
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/dao"
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/dto"
+)
+
+// 涉及外部中间件的调用（如MySQL，Redis等）的方法都放在这里，以便单测时能Mock
+type {{.EntityName}}Repository interface {
+	Add{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error
+	Delete{{.EntityName}}(id uint64) error
+	Update{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error
+	Get{{.EntityName}}(id uint64) (*dto.{{.EntityName}}, error)
+	Get{{.EntityName}}List() ([]dto.{{.EntityName}}, error)
+}
+
+// repository的标准实现
+type Std{{.EntityName}}Repository struct{}
+
+func (*Std{{.EntityName}}Repository) Add{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error {
+	return dao.Add{{.EntityName}}({{ToLower .EntityName}})
+}
+
+func (*Std{{.EntityName}}Repository) Delete{{.EntityName}}(id uint64) error {
+	return dao.Delete{{.EntityName}}(id)
+}
+
+func (*Std{{.EntityName}}Repository) Update{{.EntityName}}({{ToLower .EntityName}} *dto.{{.EntityName}}) error {
+	return dao.Update{{.EntityName}}({{ToLower .EntityName}})
+}
+
+func (*Std{{.EntityName}}Repository) Get{{.EntityName}}(id uint64) (*dto.{{.EntityName}}, error) {
+	return dao.Get{{.EntityName}}(id)
+}
+
+func (*Std{{.EntityName}}Repository) Get{{.EntityName}}List() ([]dto.{{.EntityName}}, error) {
+	return dao.Get{{.EntityName}}List()
+}
+
+// repository的标准实现实例
+var Std{{.EntityName}}RepositoryInstance *Std{{.EntityName}}Repository = new(Std{{.EntityName}}Repository)

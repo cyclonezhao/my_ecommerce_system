@@ -1,0 +1,15 @@
+package handler
+
+import (
+	"github.com/gin-gonic/gin"
+)
+
+func Route(api *gin.RouterGroup) {
+	{{ToLower .EntityName}} := api.Group("{{ToLower .EntityName}}")
+
+	{{ToLower .EntityName}}.POST("/Add{{.EntityName}}", Add{{.EntityName}}Handler)
+	{{ToLower .EntityName}}.DELETE("/Delete{{.EntityName}}", Delete{{.EntityName}}Handler)
+	{{ToLower .EntityName}}.PUT("/Update{{.EntityName}}", Update{{.EntityName}}Handler)
+	{{ToLower .EntityName}}.GET("/Get{{.EntityName}}", Get{{.EntityName}}Handler)
+	{{ToLower .EntityName}}.GET("/Get{{.EntityName}}List", Get{{.EntityName}}HandlerList)
+}

@@ -1,0 +1,103 @@
+package handler
+
+import (
+	"my_ecommerce_system/pkg/errorhandler"
+	"my_ecommerce_system/pkg/web"
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/dto"
+	"{{.ProjectName}}/internal/{{ToLower .EntityName}}/service"
+	"net/http"
+
+	"strconv"
+
+	"github.com/gin-gonic/gin"
+)
+
+// 新增{{.Table.Comment}}
+func Add{{.EntityName}}Handler(ctx *gin.Context) {
+	var {{ToLower .EntityName}} dto.{{.EntityName}}
+	err := ctx.ShouldBind(&{{ToLower .EntityName}})
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求无效", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	err = service.Add{{.EntityName}}(&{{ToLower .EntityName}}, service.Std{{.EntityName}}RepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, gin.H{"message": "添加成功"})
+	}
+
+}
+
+// 删除{{.Table.Comment}}
+func Delete{{.EntityName}}Handler(ctx *gin.Context) {
+	rawId, exist := ctx.GetQuery("id")
+	if !exist {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求必须包含id参数", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	id, err := strconv.ParseUint(rawId, 10, 64)
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "id值必须为整形", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	err = service.Delete{{.EntityName}}(id, service.Std{{.EntityName}}RepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, gin.H{"message": "删除成功"})
+	}
+}
+
+// 修改{{.Table.Comment}}
+func Update{{.EntityName}}Handler(ctx *gin.Context) {
+	var {{ToLower .EntityName}} dto.{{.EntityName}}
+	err := ctx.ShouldBind(&{{ToLower .EntityName}})
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求无效", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	err = service.Update{{.EntityName}}(&{{ToLower .EntityName}}, service.Std{{.EntityName}}RepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, gin.H{"message": "更新成功"})
+	}
+
+}
+
+// 获取{{.Table.Comment}}
+func Get{{.EntityName}}Handler(ctx *gin.Context) {
+	rawId, exist := ctx.GetQuery("id")
+	if !exist {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求必须包含id参数", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	id, err := strconv.ParseUint(rawId, 10, 64)
+	if err != nil {
+		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "id值必须为整形", HttpCode: http.StatusBadRequest})
+		return
+	}
+
+	productCategory, err := service.Get{{.EntityName}}(id, service.Std{{.EntityName}}RepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, productCategory)
+	}
+}
+
+// 获取{{.Table.Comment}}列表
+func Get{{.EntityName}}HandlerList(ctx *gin.Context) {
+	productCategoryList, err := service.Get{{.EntityName}}List(service.Std{{.EntityName}}RepositoryInstance)
+	if err != nil {
+		web.ResponseError(ctx, err)
+	} else {
+		web.ResponseSuccess(ctx, productCategoryList)
+	}
+}
