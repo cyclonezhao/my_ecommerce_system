@@ -49,12 +49,14 @@ func SignIn(ctx *gin.Context) {
 }
 
 func SignOut(ctx *gin.Context) {
-	userName, exist := ctx.GetQuery("userName")
-	if !exist {
-		web.ResponseError(ctx, &errorhandler.BusinessError{Message: "请求必须包含userName参数", HttpCode: http.StatusBadRequest})
-		return
+	ctx.GetHeader("token")
+	tokenString := ctx.GetHeader("token")
+	userName, err := GetUserNameByToken(tokenString)
+	if err != nil {
+		web.ResponseError(ctx, err)
 	}
-	err := signOut(userName)
+
+	err = signOut(userName)
 	if err != nil {
 		web.ResponseError(ctx, err)
 	} else {

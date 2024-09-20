@@ -136,3 +136,30 @@ func signOut(userName string) error {
 	_, err := client.RedisClient.Del(ctx, cacheKey).Result()
 	return err
 }
+
+func GetUserNameByToken(tokenString string) (string, error) {
+	// 解析token
+	token, err := jwt.ParseWithClaims(tokenString, &middleware.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		// 确保签名方法是HS256
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		// 返回密钥进行验证
+		return []byte(constant.JWT_SECRET_KEY), nil
+	})
+
+	if err != nil {
+		return "", &errorhandler.BusinessError{Message: "解析Token失败"}
+	}
+
+	if !token.Valid {
+		return "", &errorhandler.BusinessError{Message: "token无效"}
+	}
+
+	// 转成自定义结构体
+	if claims, ok := token.Claims.(*middleware.Claims); ok {
+		return claims.UserName, nil
+	} else {
+		return "", &errorhandler.BusinessError{Message: "token无效"}
+	}
+}
