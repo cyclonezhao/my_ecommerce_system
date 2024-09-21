@@ -11,24 +11,10 @@ import (
 	"my_product/internal/config"
 	"my_product/internal/httprouter"
 
-	"fmt"
-	"log"
 	microservice "my_ecommerce_system/pkg/microservice"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/yaml.v3"
 )
-
-func updateConfigFn(rawConfig []byte) {
-	// 将 YAML 字符串: rawConfig, 反序列化为结构体
-	err := yaml.Unmarshal([]byte(rawConfig), &config.AppConfig)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-
-	// 打印结构体内容
-	fmt.Printf("%+v\n", config.AppConfig)
-}
 
 func main() {
 	// 解析命令行参数
@@ -37,7 +23,7 @@ func main() {
 	// 初始化etcd 等客户端
 	my_client.InitEtcdClient()
 	// 拉取配置信息
-	microservice.GetRawConfigFromConfigCenter("my_product", updateConfigFn)
+	microservice.GetRawConfigFromConfigCenter("my_product", &config.AppConfig)
 	my_client.InitXORM(&config.AppConfig.DB)
 	defer my_client.Close()
 

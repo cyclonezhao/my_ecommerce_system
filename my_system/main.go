@@ -22,7 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/soheilhy/cmux"
 	"google.golang.org/grpc"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -30,23 +29,12 @@ var (
 	grpcPort    = flag.Int("port", 8081, "The server port")
 )
 
-func updateConfigFn(rawConfig []byte) {
-	// 将 YAML 字符串: rawConfig, 反序列化为结构体
-	err := yaml.Unmarshal([]byte(rawConfig), &config.AppConfig)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-
-	// 打印结构体内容
-	fmt.Printf("%+v\n", config.AppConfig)
-}
-
 func main() {
 
 	// 初始化etcd
 	my_client.InitEtcdClient()
 	// 拉取配置信息
-	microservice.GetRawConfigFromConfigCenter(serviceName, updateConfigFn)
+	microservice.GetRawConfigFromConfigCenter(serviceName, &config.AppConfig)
 
 	// 初始化客户端
 	my_client.InitDB(&config.AppConfig.DB)
